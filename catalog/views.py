@@ -1,6 +1,6 @@
 from http.client import HTTPResponse
 from django.shortcuts import render
-from django.views import generic
+from django.views.generic import ListView, DetailView
 from .models import Book, Author, BookInstance, Genre
 
 
@@ -30,11 +30,11 @@ def index(request):
     return render(request, 'index.html', context=context)
 
 
-class BookListView(generic.ListView):
+class BookListView(ListView):
     model = Book
+    paginate_by = 4
 
     context_object_name = 'book_list'
-    
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
@@ -45,4 +45,9 @@ class BookListView(generic.ListView):
 
     def get_queryset(self):
         return Book.objects.all()
+        # return Book.objects.filter(title__icontains='Google')
 
+
+class BookDetailView(DetailView):
+    """BookDetailView class provides information about a specific book """
+    model = Book

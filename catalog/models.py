@@ -39,15 +39,15 @@ class Book(models.Model):
     # Genre class has already been defined so we can specify the object above.
     genre = models.ManyToManyField(
         Genre, help_text='Select a genre for this book.')
-    date_published = models.DateField(null=True, blank=True)
+    Language = models.CharField(max_length=255, blank=True, help_text='Language for this book')
 
     def __str__(self):
         """"String representation of genre models"""
         return self.title
 
-    # def get_absolute_url(self):
-    #     """Returns the URL to access a detail record for this book."""
-    #     return reverse('book-detail', args=[str(self.id)])  # type: ignore
+    def get_absolute_url(self):
+        """Returns the URL to access a detail record for this book."""
+        return reverse('book-detail', args=[str(self.id)])  # type: ignore
 
     def display_genre(self):
         """Returns a string from the first three values of the genre field
