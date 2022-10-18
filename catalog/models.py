@@ -45,9 +45,9 @@ class Book(models.Model):
         """"String representation of genre models"""
         return self.title
 
-    def get_absolute_url(self):
-        """Returns the URL to access a detail record for this book."""
-        return reverse('book-detail', args=[str(self.id)])  # type: ignore
+    # def get_absolute_url(self):
+    #     """Returns the URL to access a detail record for this book."""
+    #     return reverse('book-detail', args=[str(self.id)])  # type: ignore
 
     def display_genre(self):
         """Returns a string from the first three values of the genre field
