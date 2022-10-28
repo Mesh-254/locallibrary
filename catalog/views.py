@@ -16,14 +16,20 @@ def index(request):
     num_instances_available = BookInstance.objects.filter(
         status__exact='a').count()
 
+    
     # The 'all()' is implied by default.
     num_authors = Author.objects.count()
+
+    #Number of visits to this view, as counted in the session variable
+    num_visits = request.session.get('num_visits', 0) 
+    request.session['num_visits'] = num_visits + 1
 
     context = {
         'num_books': num_books,
         'num_instances': num_instances,
         'num_instances_available': num_instances_available,
         'num_authors': num_authors,
+        'num_visits': num_visits,
     }
 
     # Render the HTML template index.html with the data in the context variable
@@ -51,3 +57,31 @@ class BookListView(ListView):
 class BookDetailView(DetailView):
     """BookDetailView class provides information about a specific book """
     model = Book
+
+
+class AuthorListView(ListView):
+    """AuthorListView class provides information about all authors """
+    model = Author
+    paginate_by = 4
+    context_object_name = 'author_list'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(AuthorListView, self).get_context_data(**kwargs)
+        # Create any data and add it to the context
+        context['some_data'] = 'This is just some data'
+        return context
+    
+    def get_queryset(self):
+        return Author.objects.all()
+
+class AuthorDetailView(DetailView):
+    """AuthorDetailView class provides information about a specific author """
+    model = Author
+    
+
+    
+    
+
+
+
