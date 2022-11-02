@@ -2,10 +2,11 @@ from http.client import HTTPResponse
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from .models import Book, Author, BookInstance, Genre
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
-
+@login_required
 def index(request):
     """View function for index page of site."""
     # Generate counts of some of the main objects
@@ -36,7 +37,10 @@ def index(request):
     return render(request, 'index.html', context=context)
 
 
-class BookListView(ListView):
+class BookListView(LoginRequiredMixin, ListView):
+    #alternative location to redirect the user to if they are not authenticated (login_url)
+    # login_url = '/login/'
+    # redirect_field_name = 'redirect_to'
     model = Book
     paginate_by = 4
 
@@ -59,7 +63,7 @@ class BookDetailView(DetailView):
     model = Book
 
 
-class AuthorListView(ListView):
+class AuthorListView(LoginRequiredMixin, ListView):
     """AuthorListView class provides information about all authors """
     model = Author
     paginate_by = 4
@@ -78,6 +82,17 @@ class AuthorListView(ListView):
 class AuthorDetailView(DetailView):
     """AuthorDetailView class provides information about a specific author """
     model = Author
+
+
+class LoanedBooksByUserListView(LoginRequiredMixin, ListView):
+    """Generic class-based view listing books on loan to current user."""
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return BookInstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
+
     
 
     

@@ -1,6 +1,9 @@
 from codecs import unicode_escape_decode
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
+from datetime import date
+
 import uuid
 
 # Create your models here.
@@ -39,7 +42,8 @@ class Book(models.Model):
     # Genre class has already been defined so we can specify the object above.
     genre = models.ManyToManyField(
         Genre, help_text='Select a genre for this book.')
-    Language = models.CharField(max_length=255, blank=True, help_text='Language for this book')
+    Language = models.CharField(
+        max_length=255, blank=True, help_text='Language for this book')
 
     def __str__(self):
         """"String representation of genre models"""
@@ -54,8 +58,9 @@ class Book(models.Model):
            This is required to display genre in Admin 
         """
         return ', '.join(genre.name for genre in self.genre.all()[:3])
-    
+
     display_genre.short_description = 'Genre'
+
 
 class BookInstance(models.Model):
     """Model representing a specific copy of a book (i.e. that can be borrowed from the library)."""
@@ -63,8 +68,9 @@ class BookInstance(models.Model):
                           help_text='Unique ID for this particular book across whole library')
     book = models.ForeignKey('Book', on_delete=models.RESTRICT, null=True)
     imprint = models.CharField(max_length=200)
-    due_back = models.DateField(null=True, blank=True)
-
+    due_back = models.DateField(null=False, blank=True)
+    borrower = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True)
     LOAN_STATUS = (
         ('m', 'Maintenance'),
         ('o', 'On loan'),
@@ -82,10 +88,16 @@ class BookInstance(models.Model):
 
     class Meta:
         ordering = ['due_back']
+        permissions = (("can_mark_returned", "Set book as returned"),)
 
     def __str__(self):
         """String for representing the Model object."""
         return f'{self.id} ({self.book.title})'  # type: ignore
+
+    @property
+    def is_overdue(self):
+        """Determines if the book is overdue based on due date and current date"""
+        return bool(self.due_back and date.today() > self.due_back)
 
 
 class Author(models.Model):
