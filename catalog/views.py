@@ -1,4 +1,6 @@
 from http.client import HTTPResponse
+
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from .models import Book, Author, BookInstance, Genre
@@ -15,7 +17,6 @@ from catalog.forms import RenewBookForm
 # Create your views here.
 
 
-@login_required
 def index(request):
     """View function for index page of site."""
     # Generate counts of some of the main objects
@@ -45,14 +46,14 @@ def index(request):
     return render(request, 'index.html', context=context)
 
 
-class BookListView(LoginRequiredMixin, ListView):
+class BookListView(ListView):
     # alternative location to redirect the user to if they are not authenticated (login_url)
     # login_url = '/login/'
     # redirect_field_name = 'redirect_to'
     model = Book
     paginate_by = 4
 
-    context_object_name = 'book_list'
+    context_object_name = 'book_list'  # your own name for the list as a template variable
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
@@ -66,12 +67,12 @@ class BookListView(LoginRequiredMixin, ListView):
         # return Book.objects.filter(title__icontains='Google')
 
 
-class BookDetailView(DetailView):
+class BookDetailView(LoginRequiredMixin, DetailView):
     """BookDetailView class provides information about a specific book """
     model = Book
 
 
-class AuthorListView(LoginRequiredMixin, ListView):
+class AuthorListView(ListView):
     """AuthorListView class provides information about all authors """
     model = Author
     paginate_by = 4
@@ -88,7 +89,7 @@ class AuthorListView(LoginRequiredMixin, ListView):
         return Author.objects.all()
 
 
-class AuthorDetailView(DetailView):
+class AuthorDetailView(LoginRequiredMixin, DetailView):
     """AuthorDetailView class provides information about a specific author """
     model = Author
 
@@ -103,12 +104,12 @@ class LoanedBooksByUserListView(LoginRequiredMixin, ListView):
         return BookInstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
 
 
-class allborrowedbooksListView(LoginRequiredMixin, ListView):
-    """List of all books on loan to users."""
+class LoanedBooksAllListView(PermissionRequiredMixin, ListView):
+    """Generic class-based view listing all books on loan. Only visible to users with can_mark_returned permission."""
     model = BookInstance
-    template_name = 'catalog/bookinstance_list_borrowed_books.html'
-    paginate_by = 5
-    # num_books_borrowed = BookInstance.objects.filter(status__exact='o').count()
+    permission_required = 'catalog.can_mark_returned'
+    template_name = 'catalog/bookinstance_list_borrowed_all.html'
+    paginate_by = 10
 
     def get_queryset(self):
         return BookInstance.objects.filter(status__exact='o').order_by('due_back')

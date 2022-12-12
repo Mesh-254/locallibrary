@@ -1,0 +1,14 @@
+@media (prefers-color-scheme: dark) {
+    /* all your styles for dark mode here */
+    /* Light mode */
+body {
+    background: #fff;
+    color: #000;
+  }
+  
+  /* Dark mode */
+  body.dark {
+    background: #000;
+    color: #fff;
+  }
+}
